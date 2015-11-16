@@ -226,7 +226,10 @@ namespace fold {
 namespace { namespace detail_ { namespace fold {
   using std::size_t;
 
-  template<class...> struct elems {};
+  template<class...> struct elems {
+    // fix VS
+    constexpr elems() {}
+  };
 
   template<size_t N, class Elems, class... T>
   struct make_elems;
