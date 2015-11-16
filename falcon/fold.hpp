@@ -226,10 +226,7 @@ namespace fold {
 namespace { namespace detail_ { namespace fold {
   using std::size_t;
 
-  template<class...> struct elems {
-    // fix VS
-    constexpr elems() {}
-  };
+  template<class...> struct elems {};
 
   template<size_t N, class Elems, class... T>
   struct make_elems;
@@ -361,12 +358,12 @@ namespace fold {
 namespace { namespace detail_ { namespace fold {
   template<size_t I> using seqi = std::make_index_sequence<I>;
 
-  template<class> struct arg_impl;
+  template<class> struct arg;
 
   template<size_t> struct any { template<class T> any(T const &) {} };
 
   template<size_t... I>
-  struct arg_impl<std::index_sequence<I...>>
+  struct arg<std::index_sequence<I...>>
   {
     template<class T, class... Ts>
     static constexpr decltype(auto) impl(any<I-I>..., T && x, Ts && ...) {
@@ -376,7 +373,7 @@ namespace { namespace detail_ { namespace fold {
 
   // fix VS
   template<>
-  struct arg_impl<std::index_sequence<>>
+  struct arg<std::index_sequence<>>
   {
     template<class T, class... Ts>
     static constexpr decltype(auto) impl(T && x, Ts && ...) {
@@ -384,16 +381,9 @@ namespace { namespace detail_ { namespace fold {
     }
   };
 
-  template<size_t I> using intc = std::integral_constant<size_t, I>;
-
-  template<size_t I, class... Ts>
-  constexpr decltype(auto) arg(intc<I>, Ts && ... args) {
-    return arg_impl<seqi<I>>::impl(std::forward<Ts>(args)...);
-  }
-
-  template<class Fn, size_t... I, class... Ts>
+  template<size_t... I, class Fn, class... Ts>
   constexpr decltype(auto) invoke(std::index_sequence<I...>, Fn & f, Ts && ... args) {
-    return f(arg(intc<I>{}, std::forward<Ts>(args)...)...);
+    return f(arg<seqi<I>>::impl(std::forward<Ts>(args)...)...);
   }
 
   template<class SeqArity, class Seq> struct seqseqi_impl;
@@ -442,7 +432,7 @@ namespace { namespace detail_ { namespace fold {
       seqi<(sizeof...(Ints) + sizeof...(IResidue)) % arity>{},
       std::forward<Fn>(f),
       invoke(Ints{}, f, std::forward<Ts>(args)...)...,
-      arg(intc<IResidue + sizeof...(Ints) * arity>{}, std::forward<Ts>(args)...)...
+      arg<seqi<IResidue + sizeof...(Ints) * arity>>::impl(std::forward<Ts>(args)...)...
     );
   }
 } } }

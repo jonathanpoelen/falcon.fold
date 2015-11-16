@@ -1,4 +1,4 @@
-g++-4.9, g++-5, clang=3.6: [![Travis Build Status](https://travis-ci.org/jonathanpoelen/falcon.fold.svg?branch=master)](https://travis-ci.org/jonathanpoelen/falcon.fold)
+g++-4.9, g++-5, clang-3.6: [![Travis Build Status](https://travis-ci.org/jonathanpoelen/falcon.fold.svg?branch=master)](https://travis-ci.org/jonathanpoelen/falcon.fold)
 
 VS 2015: [![Appveyor Build Status](https://ci.appveyor.com/api/projects/status/github/jonathanpoelen/falcon.fold)](https://ci.appveyor.com/project/jonathanpoelen/falcon.fold)
 

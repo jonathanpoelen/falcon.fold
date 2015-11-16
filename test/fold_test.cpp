@@ -158,6 +158,11 @@ int main()
   CHECK("[((0+1+2)+(3+4+5)+6)]", foldt<3>(MkStr{}, 0, 1, 2, 3, 4, 5, 6));
   CHECK("[(0+1+((2+3+4)+(5+6)))]", foldi<3>(MkStr{}, 0, 1, 2, 3, 4, 5, 6));
 
+  struct A {};
+  struct ApplyA_rvalue { A operator()(A &&, A &&) { return {}; } };
+  foldl(ApplyA_rvalue{}, A{}, A{});
+  struct ApplyA_lvalue { A operator()(A &, A &) { return {}; } };
+  {A a; foldl(ApplyA_lvalue{}, a, a);}
 
   Check<list<
     int_<1+2+3+4>,
