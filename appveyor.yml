@@ -57,8 +57,8 @@ after_build:
 
 build_script:
  - cd c:\sources\falcon-fold\build
- - msbuild /target:falcon-fold_test /p:Configuration=Release;Platform="x64" falcon-fold.sln
- - msbuild /target:falcon-fold_test /p:Configuration=Debug;Platform="x64" falcon-fold.sln
+ - msbuild /target:fold_test /p:Configuration=Release;Platform="x64" falcon-fold.sln
+ - msbuild /target:fold_test /p:Configuration=Debug;Platform="x64" falcon-fold.sln
 
 # scripts to run before tests
 before_test:

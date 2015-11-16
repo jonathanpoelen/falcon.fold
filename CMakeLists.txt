@@ -16,6 +16,4 @@ enable_testing()
 
 add_test(fold_test fold_test)
 
-install ( DIRECTORY ${PROJECT_SOURCE_DIR}/falcon-fold
-          DESTINATION .
-        )
+install(DIRECTORY ${PROJECT_SOURCE_DIR}/falcon-fold DESTINATION .)
