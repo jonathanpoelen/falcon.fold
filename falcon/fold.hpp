@@ -360,13 +360,23 @@ namespace { namespace detail_ { namespace fold {
 
   template<class> struct arg;
 
-  template<class> struct any { template<class T> any(T const &) {} };
+  template<size_t> struct any { template<class T> any(T const &) {} };
 
   template<size_t... I>
   struct arg<std::index_sequence<I...>>
   {
     template<class T, class... Ts>
-    static constexpr decltype(auto) impl(any<decltype(I)>..., T && x, Ts && ...) {
+    static constexpr decltype(auto) impl(any<I-I>..., T && x, Ts && ...) {
+      return std::forward<T>(x);
+    }
+  };
+
+  // fix VS
+  template<>
+  struct arg<std::index_sequence<>>
+  {
+    template<class T, class... Ts>
+    static constexpr decltype(auto) impl(T && x, Ts && ...) {
       return std::forward<T>(x);
     }
   };
