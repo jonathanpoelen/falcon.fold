@@ -28,9 +28,9 @@ matrix:
           packages: ['clang-3.6']
       env: TOOLSET=clang++-3.6
 
-    - os: osx
-      compiler: clang
-      env: TOOLSET=clang++-3.6
+    #- os: osx
+      #compiler: clang
+      #env: TOOLSET=clang++-3.6
 
 # Prepare build
 before_script:

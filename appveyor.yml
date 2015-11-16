@@ -38,16 +38,16 @@ platform:
 # - Debug
 # - Release
 
-clone_folder: c:\sources\falcon-fold
+clone_folder: c:\sources\falcon.fold
 
 build:
   parallel: true
-  project: c:\sources\falcon-fold\build\falcon-fold.sln
+  project: c:\sources\falcon.fold\build\falcon.fold.sln
   verbosity: minimal
 
 # scripts to run before build
 before_build:
-  - cd c:\sources\falcon-fold
+  - cd c:\sources\falcon.fold
   - md build
   - cd build
   - cmake -G"Visual Studio 14 2015 Win64" ..
@@ -56,9 +56,9 @@ before_build:
 after_build:
 
 build_script:
- - cd c:\sources\falcon-fold\build
- - msbuild /target:fold_test /p:Configuration=Release;Platform="x64" falcon-fold.sln
- - msbuild /target:fold_test /p:Configuration=Debug;Platform="x64" falcon-fold.sln
+ - cd c:\sources\falcon.fold\build
+ - msbuild /target:fold_test /p:Configuration=Release;Platform="x64" falcon.fold.sln
+ - msbuild /target:fold_test /p:Configuration=Debug;Platform="x64" falcon.fold.sln
 
 # scripts to run before tests
 before_test:
@@ -68,6 +68,6 @@ after_test:
 
 # to run your custom scripts instead of automatic tests
 test_script:
- - cd c:\sources\falcon-fold\build
+ - cd c:\sources\falcon.fold\build
  - cmd: ctest -C Debug -VV
  - cmd: ctest -C Release -VV
