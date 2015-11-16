@@ -17,7 +17,6 @@ struct MkStr
     return ret;
   }
 
-  template<class... Ts>
   std::string operator()() const & {
     return "empty";
   }

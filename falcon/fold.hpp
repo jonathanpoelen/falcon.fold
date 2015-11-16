@@ -421,7 +421,7 @@ namespace { namespace detail_ { namespace fold {
 
   template<
     size_t arity, class... Ints, size_t... IResidue, class Fn, class... Ts,
-    // avort ambiguous call with g++
+    // avort ambiguous call with gcc
     class = std::enable_if_t<
       ((sizeof...(Ints) > 1 || sizeof...(IResidue))
      && sizeof...(Ints) != 0)>>
