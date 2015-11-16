@@ -1,12 +1,3 @@
-function(add_exec_test name file)
-	add_executable(${name} ${file})
-	add_test(test_${name} ${name})
-endfunction(add_exec_test)
-
-function(create_exec_test name)
-	add_exec_test(${name} ${name}.cpp)
-endfunction(create_exec_test)
-
 add_definitions(
     -Wall
     -Wextra

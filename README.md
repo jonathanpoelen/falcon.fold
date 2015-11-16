@@ -1,6 +1,6 @@
-[![Build Status](https://travis-ci.org/jonathanpoelen/falcon.fold.svg?branch=master)](https://travis-ci.org/jonathanpoelen/falcon.fold)
+[![Travis Build Status](https://travis-ci.org/jonathanpoelen/falcon.fold.svg?branch=master)](https://travis-ci.org/jonathanpoelen/falcon.fold)
 
-[![Build Status](https://ci.appveyor.com/api/projects/status/github/jonathanpoelen/falcon.fold)](https://ci.appveyor.com/project/jonathanpoelen/falcon.fold)
+[![Appveyor Build Status](https://ci.appveyor.com/api/projects/status/github/jonathanpoelen/falcon.fold)](https://ci.appveyor.com/project/jonathanpoelen/falcon.fold)
 
 # Falcon.fold
 
@@ -61,7 +61,7 @@ fn(fn(fn(1, 2), fn(3, 4)), 5)
 
 Apply `fn` as a nested sub-expressions of 1 item, then 2, 4, 8, etc.
 
-`` cpp
+``` cpp
 foldi(fn, 1, 2, 3, 4, 5, 6, 7, 8)
 // Equivalent to
 fn(0, fn(fn(1, 2), fn(fn(fn(3, 4), fn(5, 6)), fn(7, 8))))
