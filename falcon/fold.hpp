@@ -395,15 +395,14 @@ namespace { namespace detail_ { namespace fold {
 
   template<size_t... I, size_t Inc>
   struct seq_inc<std::index_sequence<I...>, Inc>
-  { using type = std::index_sequence<(I + Inc)...>; };
+  { using type = std::index_sequence<(I + Inc * sizeof...(I))...>; };
 
-  template<size_t... I, size_t... IPack>
-  struct seqseqi_impl<std::index_sequence<I...>, std::index_sequence<IPack...>>
-  {
-    using type = elems<
-      typename seq_inc<std::index_sequence<I...>, IPack * sizeof...(I)>::type...
-    >;
-  };
+  template<class SeqArity, size_t Inc>
+  using seq_inc_t = typename seq_inc<SeqArity, Inc>::type;
+
+  template<class SeqArity, size_t... IPack>
+  struct seqseqi_impl<SeqArity, std::index_sequence<IPack...>>
+  { using type = elems<seq_inc_t<SeqArity, IPack>...>; };
 
   template<size_t arity, size_t N>
   using seqseqi = typename seqseqi_impl<
