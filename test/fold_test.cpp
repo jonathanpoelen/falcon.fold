@@ -112,12 +112,12 @@ int main()
   CHECK(1, foldr(f, 1));
   CHECK(1, foldl(f, 1));
   CHECK(1, foldt(f, 1));
-  CHECK(1, foldt(f, 1));
+  CHECK(1, foldi(f, 1));
 
   CHECK("empty", foldr(f));
   CHECK("empty", foldl(f));
   CHECK("empty", foldt(f));
-  CHECK("empty", foldt(f));
+  CHECK("empty", foldi(f));
 
   CHECK("(0+1)", foldl<3>(f, 0, 1));
   CHECK("(0+1+2)", foldl<3>(f, 0, 1, 2));

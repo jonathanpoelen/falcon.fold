@@ -64,7 +64,7 @@ Apply `fn` as a nested sub-expressions of 1 item, then 2, 4, 8, etc.
 ``` cpp
 foldi(fn, 1, 2, 3, 4, 5, 6, 7, 8)
 // Equivalent to
-fn(0, fn(fn(1, 2), fn(fn(fn(3, 4), fn(5, 6)), fn(7, 8))))
+fn(1, fn(fn(2, 3), fn(fn(fn(4, 5), fn(6, 7)), 8)))
 // Or
-fn(foldt(fn, 0), fn(foldt(fn, 1, 2), foldt(fn, 3, 4, 5, 6, 7, 8)))
+fn(foldt(fn, 1), fn(foldt(fn, 2, 3), fn(foldt(fn, 4, 5, 6, 7), 8)))
 ```
