@@ -371,16 +371,6 @@ namespace { namespace detail_ { namespace fold {
     }
   };
 
-  // fix VS
-  template<>
-  struct arg<std::index_sequence<>>
-  {
-    template<class T, class... Ts>
-    static constexpr decltype(auto) impl(T && x, Ts && ...) {
-      return std::forward<T>(x);
-    }
-  };
-
   template<size_t... I, class Fn, class... Ts>
   constexpr decltype(auto) invoke(std::index_sequence<I...>, Fn & f, Ts && ... args) {
     return f(arg<seqi<I>>::impl(std::forward<Ts>(args)...)...);
