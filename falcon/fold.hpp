@@ -258,7 +258,7 @@ namespace { namespace detail_ { namespace fold {
   {
     template<class Fn>
     static constexpr decltype(auto) impl(Fn && f, Ts... e) {
-      return std::forward<Fn>(f)(static_cast<Ts>(e)...);
+      return std::forward<Fn>(f)(std::forward<Ts>(e)...);
     }
 
     template<class Fn, class... Us>
@@ -267,10 +267,10 @@ namespace { namespace detail_ { namespace fold {
         arity,
         make_elems_t<
           (sizeof...(Us) + 1u < arity ? sizeof...(Us) + 1u : arity),
-          decltype(f(static_cast<Ts>(e)...)),
+          decltype(f(std::forward<Ts>(e)...)),
           Us && ...
         >
-      >::impl(std::forward<Fn>(f), f(static_cast<Ts>(e)...), std::forward<Us>(args)...);
+      >::impl(std::forward<Fn>(f), f(std::forward<Ts>(e)...), std::forward<Us>(args)...);
     }
   };
 } } }
