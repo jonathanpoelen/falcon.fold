@@ -122,6 +122,7 @@ constexpr decltype(auto) foldl(Fn && f, Ts && ... args);
 /** @} */
 
 
+#if !defined(_MSC_VER) || _MSC_VER > 1900
 /**
  * \brief  Apply \a f as a nested sub-expressions
  *
@@ -191,6 +192,7 @@ constexpr decltype(auto) foldi(Fn && f, T && x, U && y) {
 template<class Fn, class T, class U, class V, class... Ts>
 constexpr decltype(auto) foldi(Fn && f, T && x, U && y, V && z, Ts && ... args);
 /** @} */
+#endif
 
 } // namespace fold
 
@@ -355,6 +357,7 @@ namespace fold {
 } // namespace fold
 
 
+#if !defined(_MSC_VER) || _MSC_VER > 1900
 namespace { namespace detail_ { namespace fold {
   template<size_t I> using seqi = std::make_index_sequence<I>;
 
@@ -520,10 +523,12 @@ namespace fold {
   }
 } // namespace fold
 
-using fold::foldr;
-using fold::foldl;
 using fold::foldt;
 using fold::foldi;
+#endif
+
+using fold::foldr;
+using fold::foldl;
 
 } // namespace falcon
 

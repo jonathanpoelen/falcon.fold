@@ -44,6 +44,8 @@ fn(fn(fn(fn(fn(1, 2), 3), 4), 5), 6)
 
 ## foldt
 
+/!\ Because the function does not compile with MSVC 2015, it is not available for this version.
+
 Apply `fn` as a nested sub-expressions.
 
 ``` cpp
@@ -58,6 +60,8 @@ fn(fn(fn(1, 2), fn(3, 4)), 5)
 
 
 ## foldi
+
+/!\ Because the function does not compile with MSVC 2015, it is not available for this version.
 
 Apply `fn` as a nested sub-expressions of 1 item, then 2, 4, 8, etc.
 
