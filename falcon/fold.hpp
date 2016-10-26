@@ -209,7 +209,7 @@ constexpr decltype(auto) foldi(Fn && f, T && x, U && y, V && z, Ts && ... args);
 
 // Implementation
 
-namespace { namespace detail_ { namespace fold {
+namespace detail { namespace { namespace fold {
   template<class Fn, class T, class U>
   constexpr decltype(auto) foldr_impl(Fn & f, T && x, U && y) {
     return f(std::forward<T>(x), std::forward<U>(y));
@@ -245,13 +245,13 @@ namespace fold {
   constexpr decltype(auto) foldr(Fn && f, T && x, U && y, Ts && ... args) {
     return std::forward<Fn>(f)(
       std::forward<T>(x),
-      detail_::fold::foldr_impl(f, std::forward<U>(y), std::forward<Ts>(args)...)
+      detail::fold::foldr_impl(f, std::forward<U>(y), std::forward<Ts>(args)...)
     );
   }
 } // namespace fold
 
 
-namespace { namespace detail_ { namespace fold {
+namespace detail { namespace { namespace fold {
   using std::size_t;
 
   template<class...> struct elems {};
@@ -314,9 +314,9 @@ namespace fold {
   template<std::size_t arity, class Fn, class... Ts>
   constexpr decltype(auto) foldl(Fn && f, Ts && ... args) {
     static_assert(arity > 1u, "arity must be greater than 1");
-    return detail_::fold::foldl_arity<
+    return detail::fold::foldl_arity<
       arity,
-      detail_::fold::make_elems_t<
+      detail::fold::make_elems_t<
         (sizeof...(Ts) < arity ? sizeof...(Ts) : arity),
         Ts && ...
       >
@@ -325,7 +325,7 @@ namespace fold {
 } // namespace fold
 
 
-namespace { namespace detail_ { namespace fold {
+namespace detail { namespace { namespace fold {
   template<size_t arity, class Elems>
   struct foldr_arity;
 
@@ -390,10 +390,10 @@ namespace fold {
   template<std::size_t arity, class Fn, class... Ts>
   constexpr decltype(auto) foldr(Fn && f, Ts && ... args) {
     static_assert(arity > 1u, "arity must be greater or equal than 2");
-    return detail_::fold::foldr_arity<
+    return detail::fold::foldr_arity<
       arity,
-      detail_::fold::make_elems_t<
-        detail_::fold::count_foldr_element(sizeof...(Ts), arity),
+      detail::fold::make_elems_t<
+        detail::fold::count_foldr_element(sizeof...(Ts), arity),
         Ts && ...
       >
     >::first_step_impl(std::forward<Fn>(f), std::forward<Ts>(args)...);
@@ -402,7 +402,7 @@ namespace fold {
 
 
 #if !defined(_MSC_VER) || _MSC_VER > 1900
-namespace { namespace detail_ { namespace fold {
+namespace detail { namespace { namespace fold {
   template<size_t I> using seqi = std::make_index_sequence<I>;
 
   template<class> struct arg;
@@ -477,9 +477,9 @@ namespace { namespace detail_ { namespace fold {
 namespace fold {
   template<class Fn, class T, class U, class... Ts>
   constexpr decltype(auto) foldt(Fn && f, T && x, U && y, Ts && ... args) {
-    return detail_::fold::foldt_impl<2u>(
-      detail_::fold::seqseqi<2u, 2u+sizeof...(Ts)>{},
-      detail_::fold::seqi<sizeof...(Ts) % 2u>{},
+    return detail::fold::foldt_impl<2u>(
+      detail::fold::seqseqi<2u, 2u+sizeof...(Ts)>{},
+      detail::fold::seqi<sizeof...(Ts) % 2u>{},
       std::forward<Fn>(f),
       std::forward<T>(x),
       std::forward<U>(y),
@@ -490,9 +490,9 @@ namespace fold {
   template<std::size_t arity, class Fn, class... Ts>
   constexpr decltype(auto) foldt(Fn && f, Ts && ... args) {
     static_assert(arity > 1u, "arity must be greater than 1");
-    return detail_::fold::foldt_impl<arity>(
-      detail_::fold::seqseqi<arity, sizeof...(Ts)>{},
-      detail_::fold::seqi<sizeof...(Ts) % arity>{},
+    return detail::fold::foldt_impl<arity>(
+      detail::fold::seqseqi<arity, sizeof...(Ts)>{},
+      detail::fold::seqi<sizeof...(Ts) % arity>{},
       std::forward<Fn>(f),
       std::forward<Ts>(args)...
     );
@@ -500,7 +500,7 @@ namespace fold {
 } // namespace fold
 
 
-namespace { namespace detail_ { namespace fold {
+namespace detail { namespace { namespace fold {
   template<size_t arity, class Elems, size_t Pow>
   struct foldi_arity;
 
@@ -548,9 +548,9 @@ namespace fold {
   constexpr decltype(auto) foldi(Fn && f, T && x, U && y, V && z, Ts && ... args) {
     return std::forward<Fn>(f)(
       std::forward<T>(x),
-      detail_::fold::foldi_arity<
+      detail::fold::foldi_arity<
         2u,
-        detail_::fold::elems<U&&, V&&>,
+        detail::fold::elems<U&&, V&&>,
         2u
       >::impl(f, std::forward<U>(y), std::forward<V>(z), std::forward<Ts>(args)...)
     );
@@ -559,9 +559,9 @@ namespace fold {
   template<std::size_t arity, class Fn, class... Ts>
   constexpr decltype(auto) foldi(Fn && f, Ts && ... args) {
     static_assert(arity > 1u, "arity must be greater than 1");
-    return detail_::fold::foldi_arity<
+    return detail::fold::foldi_arity<
       arity,
-      detail_::fold::make_elems_t<arity-1, Ts&&...>,
+      detail::fold::make_elems_t<arity-1, Ts&&...>,
       1u
     >::first_step_impl(std::forward<Fn>(f), std::forward<Ts>(args)...);
   }
