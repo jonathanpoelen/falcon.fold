@@ -279,6 +279,15 @@ namespace { namespace detail_ { namespace fold {
   template<size_t arity, class Elems>
   struct foldl_arity;
 
+  template<class... Ts>
+  struct foldl_arity<2, elems<Ts...>>
+  {
+    template<class Fn, class... Us>
+    static constexpr decltype(auto) impl(Fn && f, Us && ... args) {
+      return ::falcon::fold::foldl(std::forward<Fn>(f), std::forward<Us>(args)...);
+    }
+  };
+
   template<size_t arity, class... Ts>
   struct foldl_arity<arity, elems<Ts...>>
   {
@@ -319,6 +328,15 @@ namespace fold {
 namespace { namespace detail_ { namespace fold {
   template<size_t arity, class Elems>
   struct foldr_arity;
+
+  template<class... Ts>
+  struct foldr_arity<2, elems<Ts...>>
+  {
+    template<class Fn, class... Us>
+    static constexpr decltype(auto) first_step_impl(Fn && f, Us && ... args) {
+      return ::falcon::fold::foldr(std::forward<Fn>(f), std::forward<Us>(args)...);
+    }
+  };
 
   constexpr size_t count_foldr_element(size_t count_element, size_t arity) {
     return count_element < arity
