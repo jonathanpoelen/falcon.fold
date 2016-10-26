@@ -111,6 +111,16 @@ constexpr decltype(auto) foldl(Fn && f, T && x, U && y, Ts && ... args) {
   );
 }
 
+template<class Fn, class T0, class T1, class T2, class T3, class T4, class U, class... Ts>
+constexpr decltype(auto) foldl(Fn && f, T0 && x0, T1 && x1, T2 && x2, T3 && x3, T4 && x4, U && y, Ts && ... args) {
+  return foldl(
+    std::forward<Fn>(f),
+    f(f(f(f(std::forward<T0>(x0), std::forward<T1>(x1)), std::forward<T2>(x2)), std::forward<T3>(x3)), std::forward<T4>(x4)),
+    std::forward<U>(y),
+    std::forward<Ts>(args)...
+  );
+}
+
 
 template<std::size_t arity, class Fn>
 constexpr decltype(auto) foldl(Fn && f){
@@ -211,6 +221,22 @@ namespace { namespace detail_ { namespace fold {
       std::forward<T>(x),
       foldr_impl(f, std::forward<U>(y), std::forward<Ts>(args)...)
     );
+  }
+
+  template<class Fn, class T0, class T1, class T2, class T3, class T4, class U, class... Ts>
+  constexpr decltype(auto) foldr_impl(Fn && f, T0 && x0, T1 && x1, T2 && x2, T3 && x3, T4 && x4, U && y, Ts && ... args) {
+    return
+      f(std::forward<T0>(x0),
+        f(std::forward<T1>(x1),
+          f(std::forward<T2>(x2),
+            f(std::forward<T3>(x3),
+              f(std::forward<T4>(x4),
+                foldr_impl(f, std::forward<U>(y), std::forward<Ts>(args)...)
+              )
+            )
+          )
+        )
+      );
   }
 } } }
 
