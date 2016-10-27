@@ -227,7 +227,7 @@ namespace detail { namespace { namespace fold {
   }
 
   template<class Fn, class T0, class T1, class T2, class T3, class T4, class U, class... Ts>
-  constexpr decltype(auto) foldr_impl(Fn && f, T0 && x0, T1 && x1, T2 && x2, T3 && x3, T4 && x4, U && y, Ts && ... args) {
+  constexpr decltype(auto) foldr_impl(Fn & f, T0 && x0, T1 && x1, T2 && x2, T3 && x3, T4 && x4, U && y, Ts && ... args) {
     return
       f(std::forward<T0>(x0),
         f(std::forward<T1>(x1),
