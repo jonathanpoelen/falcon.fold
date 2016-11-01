@@ -41,29 +41,31 @@ fn(fn(fn(fn(fn(1, 2), 3), 4), 5), 6)
 ```
 
 
-## foldml
+## foldbl
 
+Apply `fn` as a balanced left tree.
 
 ``` cpp
-foldml(fn, 1, 2, 3, 4, 5, 6, 7, 8)
+foldbl(fn, 1, 2, 3, 4, 5, 6, 7, 8)
 // Equivalent to
 fn(fn(fn(1, 2), fn(3, 4)), fn(fn(5, 6), fn(7, 8)))
 
-foldml(fn, 1, 2, 3, 4, 5)
+foldbl(fn, 1, 2, 3, 4, 5)
 // Equivalent to
 fn(fn(fn(1, 2), 3),fn(4,5))
 ```
 
 
-## foldmr
+## foldbr
 
+Apply `fn` as a balanced right tree.
 
 ``` cpp
-foldmr(fn, 1, 2, 3, 4, 5, 6, 7, 8)
+foldbr(fn, 1, 2, 3, 4, 5, 6, 7, 8)
 // Equivalent to
 fn(fn(fn(1, 2), fn(3, 4)), fn(fn(5, 6), fn(7, 8)))
 
-foldmr(fn, 1, 2, 3, 4, 5)
+foldbr(fn, 1, 2, 3, 4, 5)
 // Equivalent to
 fn(fn(1, 2), fn(3, fn(4, 5)))
 ```
