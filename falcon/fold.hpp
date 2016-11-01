@@ -24,9 +24,9 @@ SOFTWARE.
 /**
  * \author    Jonathan Poelen <jonathan.poelen+fold@gmail.com>
  * \version   1.0
- * \brief     Fold functions on parameter list: foldl, foldr, foldt and foldi.
+ * \brief     Fold functions on parameter list: foldl, foldr, foldt and foldp.
  *
- * Parameter `f`:  Binary function. If no element in a fold, is used as a generator (cf: `f()`)
+ * `f`: Binary function. If no element in a fold, is used as a generator (cf: `f()`)
  * `Ts... args`: list of values
  *
  * The ref-qualifier functions are supported and used for the last call if `f` is a rvalue.
@@ -53,22 +53,26 @@ namespace fold {
  * @{
  */
 template<class Fn>
-constexpr decltype(auto) foldr(Fn && f) {
+constexpr decltype(auto)
+foldr(Fn && f) {
   return std::forward<Fn>(f)();
 }
 
 template<class Fn, class T>
-constexpr decltype(auto) foldr(Fn &&, T && x) {
+constexpr decltype(auto)
+foldr(Fn &&, T && x) {
   return std::forward<T>(x);
 }
 
 template<class Fn, class T, class U>
-constexpr decltype(auto) foldr(Fn && f, T && x, U && y) {
+constexpr decltype(auto)
+foldr(Fn && f, T && x, U && y) {
   return std::forward<Fn>(f)(std::forward<T>(x), std::forward<U>(y));
 }
 
 template<class Fn, class T, class U, class... Ts>
-constexpr decltype(auto) foldr(Fn && f, T && x, U && y, Ts && ... args);
+constexpr decltype(auto)
+foldr(Fn && f, T && x, U && y, Ts && ... args);
 /** @} */
 
 
@@ -81,42 +85,29 @@ constexpr decltype(auto) foldr(Fn && f, T && x, U && y, Ts && ... args);
  * @{
  */
 template<class Fn>
-constexpr decltype(auto) foldl(Fn && f) {
+constexpr decltype(auto)
+foldl(Fn && f) {
   return std::forward<Fn>(f)();
 }
 
 template<class Fn, class T>
-constexpr decltype(auto) foldl(Fn &&, T && x) {
+constexpr decltype(auto)
+foldl(Fn &&, T && x) {
   return std::forward<T>(x);
 }
 
 template<class Fn, class T, class U>
-constexpr decltype(auto) foldl(Fn && f, T && x, U && y) {
+constexpr decltype(auto)
+foldl(Fn && f, T && x, U && y) {
   return std::forward<Fn>(f)(std::forward<T>(x), std::forward<U>(y));
 }
 
 template<class Fn, class T, class U, class... Ts>
-constexpr decltype(auto) foldl(Fn && f, T && x, U && y, Ts && ... args) {
-  return foldl(
-    std::forward<Fn>(f),
-    f(std::forward<T>(x), std::forward<U>(y)),
-    std::forward<Ts>(args)...
-  );
-}
-
-template<class Fn, class T0, class T1, class T2, class T3, class T4, class U, class... Ts>
-constexpr decltype(auto) foldl(Fn && f, T0 && x0, T1 && x1, T2 && x2, T3 && x3, T4 && x4, U && y, Ts && ... args) {
-  return foldl(
-    std::forward<Fn>(f),
-    f(f(f(f(std::forward<T0>(x0), std::forward<T1>(x1)), std::forward<T2>(x2)), std::forward<T3>(x3)), std::forward<T4>(x4)),
-    std::forward<U>(y),
-    std::forward<Ts>(args)...
-  );
-}
+constexpr decltype(auto)
+foldl(Fn && f, T && x, U && y, Ts && ... args);
 /** @} */
 
 
-#if !defined(_MSC_VER) || _MSC_VER > 1900
 /**
  * \brief  Apply \a f as a nested sub-expressions
  *
@@ -130,101 +121,64 @@ constexpr decltype(auto) foldl(Fn && f, T0 && x0, T1 && x1, T2 && x2, T3 && x3, 
  * @{
  */
 template<class Fn>
-constexpr decltype(auto) foldt(Fn && f) {
+constexpr decltype(auto)
+foldt(Fn && f) {
   return std::forward<Fn>(f)();
 }
 
 template<class Fn, class T>
-constexpr decltype(auto) foldt(Fn &&, T && x) {
+constexpr decltype(auto)
+foldt(Fn &&, T && x) {
   return std::forward<T>(x);
 }
 
 template<class Fn, class T, class U>
-constexpr decltype(auto) foldt(Fn && f, T && x, U && y) {
+constexpr decltype(auto)
+foldt(Fn && f, T && x, U && y) {
   return std::forward<Fn>(f)(std::forward<T>(x), std::forward<U>(y));
 }
 
 template<class Fn, class T, class U, class... Ts>
-constexpr decltype(auto) foldt(Fn && f, T && x, U && y, Ts && ... args);
+constexpr decltype(auto)
+foldt(Fn && f, T && x, U && y, Ts && ... args);
 /** @} */
 
 
 /**
  * \brief  Apply \a f as a nested sub-expressions of 1 item, then 2, 4, 8, etc.
  *
- * \code foldi(f, 1, 2, 3, 4, 5, 6, 7, 8) \endcode
+ * \code foldp(foldt, f, 1, 2, 3, 4, 5, 6, 7, 8) \endcode
  * equivalent to
- * \code f(0, f(f(1, 2), f(f(f(3, 4), f(5, 6)), f(7, 8)))) \endcode
- * or
- * \code f(foldt(f, 0), f(foldt(f, 1, 2), foldt(f, 3, 4, 5, 6, 7, 8)))) \endcode
+ * \code f(0, f(folder(1, 2), f(folder(3, 4, 5, 6), folder(7, 8)))) \endcode
  * @{
  */
-template<class Fn>
-constexpr decltype(auto) foldi(Fn && f) {
+template<class Folder, class Fn>
+constexpr decltype(auto)
+foldp(Folder &&, Fn && f) {
   return std::forward<Fn>(f)();
 }
 
-template<class Fn, class T>
-constexpr decltype(auto) foldi(Fn &&, T && x) {
+template<class Folder, class Fn, class T>
+constexpr decltype(auto)
+foldp(Folder &&, Fn &&, T && x) {
   return std::forward<T>(x);
 }
 
-template<class Fn, class T, class U>
-constexpr decltype(auto) foldi(Fn && f, T && x, U && y) {
+template<class Folder, class Fn, class T, class U>
+constexpr decltype(auto)
+foldp(Folder &&, Fn && f, T && x, U && y) {
   return std::forward<Fn>(f)(std::forward<T>(x), std::forward<U>(y));
 }
 
-template<class Fn, class T, class U, class V, class... Ts>
-constexpr decltype(auto) foldi(Fn && f, T && x, U && y, V && z, Ts && ... args);
+template<class Folder, class Fn, class T, class U, class V, class... Ts>
+constexpr decltype(auto)
+foldp(Folder && folder, Fn && f, T && x, U && y, V && z, Ts && ... args);
 /** @} */
-#endif
 
 } // namespace fold
 
 
 // Implementation
-
-namespace detail { namespace { namespace fold {
-  template<class Fn, class T, class U>
-  constexpr decltype(auto) foldr_impl(Fn & f, T && x, U && y) {
-    return f(std::forward<T>(x), std::forward<U>(y));
-  }
-
-  template<class Fn, class T, class U, class... Ts>
-  constexpr decltype(auto) foldr_impl(Fn & f, T && x, U && y, Ts && ... args) {
-    return f(
-      std::forward<T>(x),
-      foldr_impl(f, std::forward<U>(y), std::forward<Ts>(args)...)
-    );
-  }
-
-  template<class Fn, class T0, class T1, class T2, class T3, class T4, class U, class... Ts>
-  constexpr decltype(auto) foldr_impl(Fn & f, T0 && x0, T1 && x1, T2 && x2, T3 && x3, T4 && x4, U && y, Ts && ... args) {
-    return
-      f(std::forward<T0>(x0),
-        f(std::forward<T1>(x1),
-          f(std::forward<T2>(x2),
-            f(std::forward<T3>(x3),
-              f(std::forward<T4>(x4),
-                foldr_impl(f, std::forward<U>(y), std::forward<Ts>(args)...)
-              )
-            )
-          )
-        )
-      );
-  }
-} } }
-
-namespace fold {
-  template<class Fn, class T, class U, class... Ts>
-  constexpr decltype(auto) foldr(Fn && f, T && x, U && y, Ts && ... args) {
-    return std::forward<Fn>(f)(
-      std::forward<T>(x),
-      detail::fold::foldr_impl(f, std::forward<U>(y), std::forward<Ts>(args)...)
-    );
-  }
-} // namespace fold
-
 
 namespace detail { namespace { namespace fold {
   using std::size_t;
@@ -235,12 +189,155 @@ namespace detail { namespace { namespace fold {
 #else
   using make_elems_t = brigand::pop_back<brigand::list<Ts...>, brigand::size_t<(sizeof...(Ts) - n)>>;
 #endif
+
+
+  template<class Elems>
+  struct foldr_impl;
+
+  template<class T>
+  struct foldr_impl<brigand::list<T>>
+  {
+    template<class Fn, class U>
+    static constexpr decltype(auto)
+    impl(Fn & f, T a, U && b) {
+      return f(static_cast<T>(a), std::forward<U>(b));
+    }
+
+    template<class Fn, class U1, class U2>
+    static constexpr decltype(auto)
+    impl(Fn & f, T a, U1 && b, U2 && c) {
+      return f(static_cast<T>(a), f(std::forward<U1>(b), std::forward<U2>(c)));
+    }
+  };
+
+  template<class... Ts>
+  struct foldr_impl<brigand::list<Ts...>>
+  {
+    template<class Fn, class... Us>
+    static constexpr decltype(auto)
+    impl(Fn & f, Ts... e, Us && ... args) {
+      return foldr_impl<
+        make_elems_t<
+          (1u+sizeof...(Ts))/2,
+          Ts...
+        >
+      >::impl(
+        f,
+        std::forward<Ts>(e)...,
+        foldr_impl<
+          make_elems_t<
+            sizeof...(Us)/2,
+            Us&&...
+          >
+        >::impl(f, std::forward<Us>(args)...)
+      );
+    }
+  };
 } } }
 
+namespace fold {
+  template<class Fn, class T, class U, class... Ts>
+  constexpr decltype(auto)
+  foldr(Fn && f, T && x, U && y, Ts && ... args) {
+    return std::forward<Fn>(f)(
+      std::forward<T>(x),
+      detail::fold::foldr_impl<
+        detail::fold::make_elems_t<
+          (1u+sizeof...(Ts))/2,
+          U&&, Ts&&...
+        >
+      >::impl(f, std::forward<U>(y), std::forward<Ts>(args)...)
+    );
+  }
+} // namespace fold
 
-#if !defined(_MSC_VER) || _MSC_VER > 1900
+
 namespace detail { namespace { namespace fold {
-  constexpr size_t count_foldt_element(size_t count)
+  template<class Elems>
+  struct foldl_impl;
+
+  template<class T>
+  struct foldl_impl<brigand::list<T>>
+  {
+    template<class Fn, class U1>
+    static constexpr decltype(auto)
+    impl(Fn && f, U1 && a, T b) {
+      return std::forward<Fn>(f)(std::forward<U1>(a), static_cast<T>(b));
+    }
+
+    template<class Fn, class U1, class U2>
+    static constexpr decltype(auto)
+    impl(Fn && f, U1 && a, T b, U2 && c) {
+      return std::forward<Fn>(f)(f(std::forward<U1>(a), static_cast<T>(b)), std::forward<U2>(c));
+    }
+
+    template<class Fn, class U1, class U2, class U3>
+    static constexpr decltype(auto)
+    impl(Fn && f, U1 && a, T b, U2 && c, U3 && d) {
+      return std::forward<Fn>(f)(
+        f(
+          f(
+            std::forward<U1>(a),
+            static_cast<T>(b)
+          ),
+          std::forward<U2>(c)
+        ),
+        std::forward<U3>(d)
+      );
+    }
+  };
+
+  template<class... Ts>
+  struct foldl_impl<brigand::list<Ts...>>
+  {
+    template<class Fn, class T, class... Us>
+    static constexpr decltype(auto)
+    impl(Fn && f, T && a, Ts... e, Us && ... args) {
+      return foldl_impl<
+        make_elems_t<
+          (sizeof...(Us))/2,
+          Us&&...
+        >
+      >::impl(
+        std::forward<Fn>(f),
+        foldl_impl<
+          make_elems_t<
+            (sizeof...(Ts))/2,
+            Ts...
+          >
+        >::impl(
+          f,
+          std::forward<T>(a),
+          std::forward<Ts>(e)...
+        ),
+        std::forward<Us>(args)...
+      );
+    }
+  };
+} } }
+
+namespace fold {
+  template<class Fn, class T, class U, class... Ts>
+  constexpr decltype(auto)
+  foldl(Fn && f, T && x, U && y, Ts && ... args) {
+    return detail::fold::foldl_impl<
+      detail::fold::make_elems_t<
+        sizeof...(Ts)/2+1,
+        T&&, U&&, Ts&&...
+      >
+    >::impl(
+      std::forward<Fn>(f),
+      std::forward<T>(x),
+      std::forward<U>(y),
+      std::forward<Ts>(args)...
+    );
+  }
+} // namespace fold
+
+
+namespace detail { namespace { namespace fold {
+  constexpr size_t
+  count_foldt_element(size_t count)
   {
     size_t n = 2;
     while (n * 2 < count) {
@@ -256,7 +353,8 @@ namespace detail { namespace { namespace fold {
   struct foldt_impl<brigand::list<T>>
   {
     template<class Fn>
-    static constexpr T impl(Fn &, T e) {
+    static constexpr T
+    impl(Fn &, T e) {
       return static_cast<T>(e);
     }
   };
@@ -265,17 +363,19 @@ namespace detail { namespace { namespace fold {
   struct foldt_impl<brigand::list<Ts...>>
   {
     template<class Fn>
-    static constexpr decltype(auto) impl(Fn && f, Ts... e) {
+    static constexpr decltype(auto)
+    impl(Fn && f, Ts... e) {
       return std::forward<Fn>(f)(static_cast<Ts>(e)...);
     }
 
     template<class Fn, class... Us>
-    static constexpr decltype(auto) impl(Fn && f, Ts... e, Us && ... args) {
+    static constexpr decltype(auto)
+    impl(Fn && f, Ts... e, Us && ... args) {
       return std::forward<Fn>(f)(
         foldt_impl<
           make_elems_t<
             count_foldt_element(sizeof...(Ts)),
-            Ts&&...
+            Ts...
           >
         >::impl(f, std::forward<Ts>(e)...),
         foldt_impl<
@@ -287,12 +387,12 @@ namespace detail { namespace { namespace fold {
       );
     }
   };
-
 } } }
 
 namespace fold {
   template<class Fn, class T, class U, class... Ts>
-  constexpr decltype(auto) foldt(Fn && f, T && x, U && y, Ts && ... args) {
+  constexpr decltype(auto)
+  foldt(Fn && f, T && x, U && y, Ts && ... args) {
     return detail::fold::foldt_impl<
       detail::fold::make_elems_t<
         detail::fold::count_foldt_element(sizeof...(Ts)+2),
@@ -310,62 +410,60 @@ namespace fold {
 
 namespace detail { namespace { namespace fold {
   template<class Elems, size_t Pow>
-  struct foldi_impl;
+  struct foldp_impl;
 
   template<class... Ts, size_t Pow>
-  struct foldi_impl<brigand::list<Ts...>, Pow>
+  struct foldp_impl<brigand::list<Ts...>, Pow>
   {
-    template<class Fn>
-    static constexpr decltype(auto) impl(Fn & f, Ts... e) {
-      return ::falcon::fold::foldt(f, static_cast<Ts>(e)...);
+    template<class Folder, class Fn>
+    static constexpr decltype(auto)
+    impl(Folder & folder, Fn &, Ts... e) {
+      return folder(static_cast<Ts>(e)...);
     }
 
-    template<class Fn, class... Us>
-    static constexpr decltype(auto) impl(Fn & f, Ts... e, Us && ... args) {
-      return f(::falcon::fold::foldt(f, static_cast<Ts>(e)...), foldi_impl<
-        make_elems_t<
-          Pow * 2 < sizeof...(args) ? Pow * 2 : sizeof...(args),
-          Us && ...
-        >,
-        Pow * 2
-      >::impl(f, std::forward<Us>(args)...));
-    }
-
-    template<class Fn>
-    static constexpr decltype(auto) first_step_impl(Fn && f, Ts... e) {
-      return std::forward<Fn>(f)(static_cast<Ts>(e)...);
-    }
-
-    template<class Fn, class... Us>
-    static constexpr decltype(auto) first_step_impl(Fn && f, Ts... e, Us && ... args) {
-      return std::forward<Fn>(f)(static_cast<Ts>(e)..., foldi_impl<
-        make_elems_t<
-          Pow * 2 < sizeof...(args) ? Pow * 2 : sizeof...(args),
-          Us && ...
-        >,
-        Pow * 2
-      >::impl(f, std::forward<Us>(args)...));
+    template<class Folder, class Fn, class... Us>
+    static constexpr decltype(auto)
+    impl(Folder & folder, Fn & f, Ts... e, Us && ... args) {
+      return f(
+        folder(static_cast<Ts>(e)...),
+        foldp_impl<
+          make_elems_t<
+            std::min(Pow * 2u, sizeof...(args)),
+            Us && ...
+          >,
+          Pow * 2
+        >::impl(
+          folder,
+          f,
+          std::forward<Us>(args)...
+        )
+      );
     }
   };
 } } }
 
 namespace fold {
-  template<class Fn, class T, class U, class V, class... Ts>
-  constexpr decltype(auto) foldi(Fn && f, T && x, U && y, V && z, Ts && ... args) {
+  template<class Folder, class Fn, class T, class U, class V, class... Ts>
+  constexpr decltype(auto)
+  foldp(Folder && folder, Fn && f, T && x, U && y, V && z, Ts && ... args) {
     return std::forward<Fn>(f)(
       std::forward<T>(x),
-      detail::fold::foldi_impl<
+      detail::fold::foldp_impl<
         brigand::list<U&&, V&&>,
         2u
-      >::impl(f, std::forward<U>(y), std::forward<V>(z), std::forward<Ts>(args)...)
+      >::impl(
+        folder,
+        f,
+        std::forward<U>(y),
+        std::forward<V>(z),
+        std::forward<Ts>(args)...
+      )
     );
   }
 } // namespace fold
 
 using fold::foldt;
-using fold::foldi;
-#endif
-
+using fold::foldp;
 using fold::foldr;
 using fold::foldl;
 

@@ -71,8 +71,6 @@ fn(fn(1, 2), fn(3, fn(4, 5)))
 
 ## foldt
 
-/!\ Because the function does not compile with MSVC 2015, it is not available for this version.
-
 Apply `fn` as a nested sub-expressions.
 
 ``` cpp
@@ -86,16 +84,12 @@ fn(fn(fn(1, 2), fn(3, 4)), 5)
 ```
 
 
-## foldi
-
-/!\ Because the function does not compile with MSVC 2015, it is not available for this version.
+## foldp
 
 Apply `fn` as a nested sub-expressions of 1 item, then 2, 4, 8, etc.
 
 ``` cpp
-foldi(fn, 1, 2, 3, 4, 5, 6, 7, 8)
+foldp(folder, f, 1, 2, 3, 4, 5, 6, 7, 8)
 // Equivalent to
-fn(1, fn(fn(2, 3), fn(fn(fn(4, 5), fn(6, 7)), 8)))
-// Or
-fn(foldt(fn, 1), fn(foldt(fn, 2, 3), fn(foldt(fn, 4, 5, 6, 7), 8)))
+f(0, f(folder(1, 2), f(folder(3, 4, 5, 6), folder(7, 8))))
 ```
