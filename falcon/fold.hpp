@@ -27,7 +27,6 @@ SOFTWARE.
  * \brief     Fold functions on parameter list: foldl, foldr, foldt and foldi.
  *
  * Parameter `f`:  Binary function. If no element in a fold, is used as a generator (cf: `f()`)
- * Template parameter `arity` (optional):  Number of arguments to the function `f`
  * `Ts... args`: list of values
  *
  * The ref-qualifier functions are supported and used for the last call if `f` is a rvalue.
@@ -70,15 +69,6 @@ constexpr decltype(auto) foldr(Fn && f, T && x, U && y) {
 
 template<class Fn, class T, class U, class... Ts>
 constexpr decltype(auto) foldr(Fn && f, T && x, U && y, Ts && ... args);
-
-
-template<std::size_t arity, class Fn>
-constexpr decltype(auto) foldr(Fn && f) {
-  return std::forward<Fn>(f)();
-}
-
-template<std::size_t arity, class Fn, class... Ts>
-constexpr decltype(auto) foldr(Fn && f, Ts && ... args);
 /** @} */
 
 
@@ -123,15 +113,6 @@ constexpr decltype(auto) foldl(Fn && f, T0 && x0, T1 && x1, T2 && x2, T3 && x3, 
     std::forward<Ts>(args)...
   );
 }
-
-
-template<std::size_t arity, class Fn>
-constexpr decltype(auto) foldl(Fn && f){
-  return std::forward<Fn>(f)();
-}
-
-template<std::size_t arity, class Fn, class... Ts>
-constexpr decltype(auto) foldl(Fn && f, Ts && ... args);
 /** @} */
 
 
@@ -165,15 +146,6 @@ constexpr decltype(auto) foldt(Fn && f, T && x, U && y) {
 
 template<class Fn, class T, class U, class... Ts>
 constexpr decltype(auto) foldt(Fn && f, T && x, U && y, Ts && ... args);
-
-
-template<std::size_t arity, class Fn>
-constexpr decltype(auto) foldt(Fn && f) {
-  return std::forward<Fn>(f)();
-}
-
-template<std::size_t arity, class Fn, class... Ts>
-constexpr decltype(auto) foldt(Fn && f, Ts && ... args);
 /** @} */
 
 
@@ -263,253 +235,99 @@ namespace detail { namespace { namespace fold {
 #else
   using make_elems_t = brigand::pop_back<brigand::list<Ts...>, brigand::size_t<(sizeof...(Ts) - n)>>;
 #endif
-
-
-  template<size_t arity, class Elems>
-  struct foldl_arity;
-
-  template<class... Ts>
-  struct foldl_arity<2, brigand::list<Ts...>>
-  {
-    template<class Fn, class... Us>
-    static constexpr decltype(auto) impl(Fn && f, Us && ... args) {
-      return ::falcon::fold::foldl(std::forward<Fn>(f), std::forward<Us>(args)...);
-    }
-  };
-
-  template<size_t arity, class... Ts>
-  struct foldl_arity<arity, brigand::list<Ts...>>
-  {
-    template<class Fn>
-    static constexpr decltype(auto) impl(Fn && f, Ts... e) {
-      return std::forward<Fn>(f)(std::forward<Ts>(e)...);
-    }
-
-    template<class Fn, class... Us>
-    static constexpr decltype(auto) impl(Fn && f, Ts... e, Us && ... args) {
-      return foldl_arity<
-        arity,
-        make_elems_t<
-          (sizeof...(Us) + 1u < arity ? sizeof...(Us) + 1u : arity),
-          decltype(f(std::forward<Ts>(e)...)),
-          Us && ...
-        >
-      >::impl(std::forward<Fn>(f), f(std::forward<Ts>(e)...), std::forward<Us>(args)...);
-    }
-  };
 } } }
-
-namespace fold {
-  template<std::size_t arity, class Fn, class... Ts>
-  constexpr decltype(auto) foldl(Fn && f, Ts && ... args) {
-    static_assert(arity > 1u, "arity must be greater than 1");
-    return detail::fold::foldl_arity<
-      arity,
-      detail::fold::make_elems_t<
-        (sizeof...(Ts) < arity ? sizeof...(Ts) : arity),
-        Ts && ...
-      >
-    >::impl(std::forward<Fn>(f), std::forward<Ts>(args)...);
-  }
-} // namespace fold
-
-
-namespace detail { namespace { namespace fold {
-  template<size_t arity, class Elems>
-  struct foldr_arity;
-
-  template<class... Ts>
-  struct foldr_arity<2, brigand::list<Ts...>>
-  {
-    template<class Fn, class... Us>
-    static constexpr decltype(auto) first_step_impl(Fn && f, Us && ... args) {
-      return ::falcon::fold::foldr(std::forward<Fn>(f), std::forward<Us>(args)...);
-    }
-  };
-
-  constexpr size_t count_foldr_element(size_t count_element, size_t arity) {
-    return count_element < arity
-      ? count_element - 1u
-      : (arity - 1u) - (count_element - arity) % (arity - 1u);
-  }
-
-  template<size_t arity, class... Ts>
-  struct foldr_arity<arity, brigand::list<Ts...>>
-  {
-    template<class Fn>
-    static constexpr decltype(auto) impl(Fn & f, Ts... e) {
-      return f(static_cast<Ts>(e)...);
-    }
-
-    template<class Fn, class T>
-    static constexpr decltype(auto) impl(Fn & f, Ts... e, T && arg) {
-      return f(static_cast<Ts>(e)..., std::forward<T>(arg));
-    }
-
-    template<class Fn, class... Us>
-    static constexpr decltype(auto) impl(Fn & f, Ts... e, Us && ... args) {
-      return f(static_cast<Ts>(e)..., foldr_arity<
-        arity,
-        make_elems_t<
-          count_foldr_element(sizeof...(Us), arity),
-          Us && ...
-        >
-      >::impl(f, std::forward<Us>(args)...));
-    }
-
-    template<class Fn, class T>
-    static constexpr decltype(auto) first_step_impl(Fn && f, Ts... e, T && arg) {
-      return std::forward<Fn>(f)(static_cast<Ts>(e)..., std::forward<T>(arg));
-    }
-
-    template<class Fn, class... Us>
-    static constexpr decltype(auto) first_step_impl(Fn && f, Ts... e, Us && ... args) {
-      return std::forward<Fn>(f)(static_cast<Ts>(e)..., foldr_arity<
-        arity,
-        make_elems_t<
-          count_foldr_element(sizeof...(Us), arity),
-          Us && ...
-        >
-      >::impl(f, std::forward<Us>(args)...));
-    }
-  };
-} } }
-
-namespace fold {
-  template<std::size_t arity, class Fn, class... Ts>
-  constexpr decltype(auto) foldr(Fn && f, Ts && ... args) {
-    static_assert(arity > 1u, "arity must be greater or equal than 2");
-    return detail::fold::foldr_arity<
-      arity,
-      detail::fold::make_elems_t<
-        detail::fold::count_foldr_element(sizeof...(Ts), arity),
-        Ts && ...
-      >
-    >::first_step_impl(std::forward<Fn>(f), std::forward<Ts>(args)...);
-  }
-} // namespace fold
 
 
 #if !defined(_MSC_VER) || _MSC_VER > 1900
 namespace detail { namespace { namespace fold {
-  template<size_t I> using seqi = brigand::range<std::size_t, 0, I>;
-
-  template<class> struct arg;
-
-  struct any { template<class T> any(T const &) {} };
-
-  template<class... Any>
-  struct arg<brigand::list<Any...>>
+  constexpr size_t count_foldt_element(size_t count)
   {
-    template<class T, class... Ts>
-    static constexpr decltype(auto) impl(Any..., T && x, Ts && ...) {
-      return std::forward<T>(x);
+    size_t n = 2;
+    while (n * 2 < count) {
+      n *= 2;
+    }
+    return std::min(n, count);
+  }
+
+  template<class Elems>
+  struct foldt_impl;
+
+  template<class T>
+  struct foldt_impl<brigand::list<T>>
+  {
+    template<class Fn>
+    static constexpr T impl(Fn &, T e) {
+      return static_cast<T>(e);
     }
   };
 
-  template<class... I, class Fn, class... Ts>
-  constexpr decltype(auto) invoke(brigand::list<I...>, Fn & f, Ts && ... args) {
-    return f(arg<brigand::filled_list<any, I::value>>::impl(std::forward<Ts>(args)...)...);
-  }
+  template<class... Ts>
+  struct foldt_impl<brigand::list<Ts...>>
+  {
+    template<class Fn>
+    static constexpr decltype(auto) impl(Fn && f, Ts... e) {
+      return std::forward<Fn>(f)(static_cast<Ts>(e)...);
+    }
 
-  template<class Ints, class Inc> struct seq_inc;
+    template<class Fn, class... Us>
+    static constexpr decltype(auto) impl(Fn && f, Ts... e, Us && ... args) {
+      return std::forward<Fn>(f)(
+        foldt_impl<
+          make_elems_t<
+            count_foldt_element(sizeof...(Ts)),
+            Ts&&...
+          >
+        >::impl(f, std::forward<Ts>(e)...),
+        foldt_impl<
+          make_elems_t<
+            count_foldt_element(sizeof...(Us)),
+            Us&&...
+          >
+        >::impl(f, std::forward<Us>(args)...)
+      );
+    }
+  };
 
-  template<class... I, class Inc>
-  struct seq_inc<brigand::list<I...>, Inc>
-  { using type = brigand::list<brigand::size_t<(I::value + Inc::value * sizeof...(I))>...>; };
-
-  template<class SeqArity, class Inc>
-  using seq_inc_t = typename seq_inc<SeqArity, Inc>::type;
-
-  template<class SeqArity, class Seq> struct seqseqi_impl;
-
-  template<class SeqArity, class... IPack>
-  struct seqseqi_impl<SeqArity, brigand::list<IPack...>>
-  { using type = brigand::list<seq_inc_t<SeqArity, IPack>...>; };
-
-  template<size_t arity, size_t N>
-  using seqseqi = typename seqseqi_impl<
-    seqi<arity>,
-    seqi<N / arity>
-  >::type;
-
-  template<size_t arity, class... IResidue, class Fn, class... Ts>
-  constexpr decltype(auto)
-  foldt_impl(brigand::list<>, brigand::list<IResidue...>, Fn && f, Ts && ... args) {
-    return std::forward<Fn>(f)(std::forward<Ts>(args)...);
-  }
-
-  template<size_t arity, class Ints, class Fn, class... Ts>
-  constexpr decltype(auto)
-  foldt_impl(brigand::list<Ints>, brigand::list<>, Fn && f, Ts && ... args) {
-    return std::forward<Fn>(f)(std::forward<Ts>(args)...);
-  }
-
-  template<
-    size_t arity, class... Ints, class... IResidue, class Fn, class... Ts,
-    // avort ambiguous call with gcc
-    class = std::enable_if_t<
-      ((sizeof...(Ints) > 1 || sizeof...(IResidue))
-     && sizeof...(Ints) != 0)>>
-  constexpr decltype(auto)
-  foldt_impl(brigand::list<Ints...>, brigand::list<IResidue...>, Fn && f, Ts && ... args) {
-    return foldt_impl<arity>(
-      seqseqi<arity, sizeof...(Ints) + sizeof...(IResidue)>{},
-      seqi<(sizeof...(Ints) + sizeof...(IResidue)) % arity>{},
-      std::forward<Fn>(f),
-      invoke(Ints{}, f, std::forward<Ts>(args)...)...,
-      arg<brigand::filled_list<any, IResidue::value + sizeof...(Ints) * arity>>::impl(std::forward<Ts>(args)...)...
-    );
-  }
 } } }
 
 namespace fold {
   template<class Fn, class T, class U, class... Ts>
   constexpr decltype(auto) foldt(Fn && f, T && x, U && y, Ts && ... args) {
-    return detail::fold::foldt_impl<2u>(
-      detail::fold::seqseqi<2u, 2u+sizeof...(Ts)>{},
-      detail::fold::seqi<sizeof...(Ts) % 2u>{},
+    return detail::fold::foldt_impl<
+      detail::fold::make_elems_t<
+        detail::fold::count_foldt_element(sizeof...(Ts)+2),
+        T&&, U&&, Ts&&...
+      >
+    >::impl(
       std::forward<Fn>(f),
       std::forward<T>(x),
       std::forward<U>(y),
       std::forward<Ts>(args)...
     );
   }
-
-  template<std::size_t arity, class Fn, class... Ts>
-  constexpr decltype(auto) foldt(Fn && f, Ts && ... args) {
-    static_assert(arity > 1u, "arity must be greater than 1");
-    return detail::fold::foldt_impl<arity>(
-      detail::fold::seqseqi<arity, sizeof...(Ts)>{},
-      detail::fold::seqi<sizeof...(Ts) % arity>{},
-      std::forward<Fn>(f),
-      std::forward<Ts>(args)...
-    );
-  }
 } // namespace fold
 
 
 namespace detail { namespace { namespace fold {
-  template<size_t arity, class Elems, size_t Pow>
-  struct foldi_arity;
+  template<class Elems, size_t Pow>
+  struct foldi_impl;
 
-  template<size_t arity, class... Ts, size_t Pow>
-  struct foldi_arity<arity, brigand::list<Ts...>, Pow>
+  template<class... Ts, size_t Pow>
+  struct foldi_impl<brigand::list<Ts...>, Pow>
   {
     template<class Fn>
     static constexpr decltype(auto) impl(Fn & f, Ts... e) {
-      return ::falcon::fold::foldt<arity>(f, static_cast<Ts>(e)...);
+      return ::falcon::fold::foldt(f, static_cast<Ts>(e)...);
     }
 
     template<class Fn, class... Us>
     static constexpr decltype(auto) impl(Fn & f, Ts... e, Us && ... args) {
-      return f(::falcon::fold::foldt<arity>(f, static_cast<Ts>(e)...), foldi_arity<
-        arity,
+      return f(::falcon::fold::foldt(f, static_cast<Ts>(e)...), foldi_impl<
         make_elems_t<
-          Pow * arity < sizeof...(args) ? Pow * arity : sizeof...(args),
+          Pow * 2 < sizeof...(args) ? Pow * 2 : sizeof...(args),
           Us && ...
         >,
-        Pow * arity
+        Pow * 2
       >::impl(f, std::forward<Us>(args)...));
     }
 
@@ -520,13 +338,12 @@ namespace detail { namespace { namespace fold {
 
     template<class Fn, class... Us>
     static constexpr decltype(auto) first_step_impl(Fn && f, Ts... e, Us && ... args) {
-      return std::forward<Fn>(f)(static_cast<Ts>(e)..., foldi_arity<
-        arity,
+      return std::forward<Fn>(f)(static_cast<Ts>(e)..., foldi_impl<
         make_elems_t<
-          Pow * arity < sizeof...(args) ? Pow * arity : sizeof...(args),
+          Pow * 2 < sizeof...(args) ? Pow * 2 : sizeof...(args),
           Us && ...
         >,
-        Pow * arity
+        Pow * 2
       >::impl(f, std::forward<Us>(args)...));
     }
   };
@@ -537,22 +354,11 @@ namespace fold {
   constexpr decltype(auto) foldi(Fn && f, T && x, U && y, V && z, Ts && ... args) {
     return std::forward<Fn>(f)(
       std::forward<T>(x),
-      detail::fold::foldi_arity<
-        2u,
+      detail::fold::foldi_impl<
         brigand::list<U&&, V&&>,
         2u
       >::impl(f, std::forward<U>(y), std::forward<V>(z), std::forward<Ts>(args)...)
     );
-  }
-
-  template<std::size_t arity, class Fn, class... Ts>
-  constexpr decltype(auto) foldi(Fn && f, Ts && ... args) {
-    static_assert(arity > 1u, "arity must be greater than 1");
-    return detail::fold::foldi_arity<
-      arity,
-      detail::fold::make_elems_t<arity-1, Ts&&...>,
-      1u
-    >::first_step_impl(std::forward<Fn>(f), std::forward<Ts>(args)...);
   }
 } // namespace fold
 

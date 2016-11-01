@@ -11,10 +11,9 @@ Header only (c++14).
 
 # Documentation
 
-All functions are in namespaces `falcon` and `falcon::fold` in the form `decltype(auto) fold(fn &&, Ts && ...)` and `decltype(auto) fold<arity>(fn &&, Ts && ...)`.
+All functions are in namespaces `falcon` and `falcon::fold` in the form `decltype(auto) fold(fn &&, Ts && ...)`.
 
 - Parameter `fn`:  Binary function. If no element in a fold, is used as a generator (cf: `fn()`)
-- Template parameter `arity` (optional):  Number of arguments to the function `fn`
 - `Ts... args`: list of values
 
 The ref-qualifier functions are supported and used for the last call if `fn` is a rvalue.
@@ -39,6 +38,34 @@ Apply `fn` from left to right.
 foldl(fn, 1, 2, 3, 4, 5, 6)
 // Equivalent to
 fn(fn(fn(fn(fn(1, 2), 3), 4), 5), 6)
+```
+
+
+## foldml
+
+
+``` cpp
+foldml(fn, 1, 2, 3, 4, 5, 6, 7, 8)
+// Equivalent to
+fn(fn(fn(1, 2), fn(3, 4)), fn(fn(5, 6), fn(7, 8)))
+
+foldml(fn, 1, 2, 3, 4, 5)
+// Equivalent to
+fn(fn(fn(1, 2), 3),fn(4,5))
+```
+
+
+## foldmr
+
+
+``` cpp
+foldmr(fn, 1, 2, 3, 4, 5, 6, 7, 8)
+// Equivalent to
+fn(fn(fn(1, 2), fn(3, 4)), fn(fn(5, 6), fn(7, 8)))
+
+foldmr(fn, 1, 2, 3, 4, 5)
+// Equivalent to
+fn(fn(1, 2), fn(3, fn(4, 5)))
 ```
 
 
