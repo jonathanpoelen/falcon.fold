@@ -261,8 +261,130 @@ namespace detail { namespace { namespace fold {
 #else
   using make_elems_t = brigand::pop_back<brigand::list<Ts...>, brigand::size_t<(sizeof...(Ts) - n)>>;
 #endif
+} } }
 
 
+//#if defined(__cpp_fold_expressions) && __cpp_fold_expressions >= 201411
+#if __cplusplus > 201402L
+# define FALCON_HAS_FOLD_EXPRESSION 1
+#else
+# define FALCON_HAS_FOLD_EXPRESSION 0
+#endif
+
+
+#if FALCON_HAS_FOLD_EXPRESSION
+namespace detail { namespace { namespace fold {
+  template<class F, class T = void>
+  struct FoldFn
+  {
+    F fn;
+    T value;
+  };
+
+  template<class F>
+  struct FoldFn<F, void>
+  {
+    F fn;
+  };
+
+  template<class F, class T>
+  constexpr FoldFn<F&, T> foldfn(F & f, T && x)
+  { return {f, std::forward<T>(x)}; }
+
+  template<class F>
+  constexpr FoldFn<F&> foldfn(F & f)
+  { return {f}; }
+
+  template<class F, class T, class U>
+  constexpr decltype(auto)
+  operator, (T && x, FoldFn<F, U> && w) {
+    return foldfn(w.fn, w.fn(std::forward<T>(x), std::forward<U>(w.value)));
+  }
+
+  template<class F, class T>
+  constexpr decltype(auto)
+  operator, (T && x, FoldFn<F> && w) {
+    return FoldFn<F, T&&>{w.fn, std::forward<T>(x)};
+  }
+} } }
+
+namespace fold {
+  template<class Fn, class T, class U, class... Ts>
+  constexpr decltype(auto)
+  foldr(Fn && f, T && x, U && y, Ts && ... args)
+  {
+    return std::forward<Fn>(f)(
+      std::forward<T>(x),
+      f(
+        std::forward<U>(y),
+        (std::forward<Ts>(args), ..., detail::fold::foldfn(f)).value
+      )
+    );
+  }
+}
+
+
+namespace detail { namespace { namespace fold {
+  template<class F, class T, class U>
+  constexpr decltype(auto)
+  operator, (FoldFn<F, T> && w, U && y) {
+    return foldfn(w.fn, w.fn(std::forward<T>(w.value), std::forward<U>(y)));
+  }
+
+  template<class F, class U>
+  constexpr decltype(auto)
+  operator, (FoldFn<F> && w, U && y) {
+    return FoldFn<F, U&&>{w.fn, std::forward<U>(y)};
+  }
+
+  template<class Elems>
+  struct foldl_impl;
+
+  template<class... Ts>
+  struct foldl_impl<brigand::list<Ts...>>
+  {
+    template<class Fn, class U>
+    static constexpr decltype(auto)
+    impl(Fn && f, Ts... e, U && y) {
+      return std::forward<Fn>(f)(
+        (foldfn(f), ..., static_cast<Ts>(e)).value,
+        std::forward<U>(y)
+      );
+    }
+  };
+} } }
+
+namespace fold {
+  template<class Fn, class T, class U, class... Ts>
+  constexpr decltype(auto)
+  foldl(Fn && f, T && x, U && y, Ts && ... args)
+  {
+    return detail::fold::foldl_impl<
+      detail::fold::make_elems_t<
+        sizeof...(Ts)+1,
+        T&&, U&&, Ts&&...
+      >
+    >::impl(
+      std::forward<Fn>(f),
+      std::forward<T>(x),
+      std::forward<U>(y),
+      std::forward<Ts>(args)...
+    );
+  }
+
+  template<class Fn, class T, class U, class... Ts>
+  constexpr decltype(auto)
+  foldl(Fn & f, T && x, U && y, Ts && ... args)
+  {
+    return (
+      detail::fold::foldfn(f, f(std::forward<T>(x), std::forward<U>(y)))
+    , ...
+    , std::forward<Ts>(args)
+    ).value;
+  }
+}
+#else
+namespace detail { namespace { namespace fold {
   template<class Elems>
   struct foldr_impl;
 
@@ -298,7 +420,7 @@ namespace detail { namespace { namespace fold {
         >
       >::impl(
         f,
-        std::forward<Ts>(e)...,
+        static_cast<Ts>(e)...,
         foldr_impl<
           make_elems_t<
             sizeof...(Us)/2,
@@ -383,7 +505,7 @@ namespace detail { namespace { namespace fold {
         >::impl(
           f,
           std::forward<T>(a),
-          std::forward<Ts>(e)...
+          static_cast<Ts>(e)...
         ),
         std::forward<Us>(args)...
       );
@@ -408,6 +530,7 @@ namespace fold {
     );
   }
 } // namespace fold
+#endif
 
 
 namespace detail { namespace { namespace fold {
@@ -426,8 +549,27 @@ namespace detail { namespace { namespace fold {
 
   template<class T>
   struct foldbr_impl<brigand::list<T>>
+#if FALCON_HAS_FOLD_EXPRESSION
+  {
+    template<class Fn, class U>
+    static constexpr decltype(auto)
+    impl(Fn && f, T a, U && b) {
+      return std::forward<Fn>(f)(static_cast<T>(a), std::forward<U>(b));
+    }
+
+    template<class Fn, class U1, class U2>
+    static constexpr decltype(auto)
+    impl(Fn && f, T a, U1 && b, U2 && c) {
+      return std::forward<Fn>(f)(
+        static_cast<T>(a),
+        f(std::forward<U1>(b), std::forward<U2>(c))
+      );
+    }
+  };
+#else
   : foldr_impl<brigand::list<T>>
   {};
+#endif
 
   template<class... Ts>
   struct foldbr_impl<brigand::list<Ts...>>
@@ -441,7 +583,7 @@ namespace detail { namespace { namespace fold {
             sizeof...(Ts)/2,
             Ts...
           >
-        >::impl(f, std::forward<Ts>(e)...),
+        >::impl(f, static_cast<Ts>(e)...),
         foldbr_impl<
           make_elems_t<
             sizeof...(Us)/2,
@@ -514,7 +656,7 @@ namespace detail { namespace { namespace fold {
             sizeof...(Ts)/2 + sizeof...(Ts) % 2,
             Ts...
           >
-        >::impl(f, std::forward<Ts>(e)...),
+        >::impl(f, static_cast<Ts>(e)...),
         foldbl_impl<
           make_elems_t<
             sizeof...(Us)/2 + sizeof...(Us) % 2,
@@ -587,7 +729,7 @@ namespace detail { namespace { namespace fold {
             count_foldt_element(sizeof...(Ts)),
             Ts...
           >
-        >::impl(f, std::forward<Ts>(e)...),
+        >::impl(f, static_cast<Ts>(e)...),
         foldt_impl<
           make_elems_t<
             count_foldt_element(sizeof...(Us)),
