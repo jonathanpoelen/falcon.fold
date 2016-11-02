@@ -2,11 +2,18 @@ project(Falcon.Fold)
 
 cmake_minimum_required(VERSION 2.8)
 
+option(FALCON_FOLD_ENABLE_CXX17 "enable -std=c++1z if clang or gcc." OFF)
+
 if((CMAKE_CXX_COMPILER_ID MATCHES "Clang") OR CMAKE_COMPILER_IS_GNUCXX)
   include(CMakeDefinitions.txt)
-  #add_definitions(-g)
-  add_definitions(-std=c++14)
+  if (FALCON_FOLD_ENABLE_CXX17)
+    add_definitions(-std=c++1z)
+  else()
+    add_definitions(-std=c++14)
+  endif()
 endif()
+
+add_definitions(-DBRIGAND_NO_BOOST_SUPPORT)
 
 include_directories(.)
 

@@ -1,43 +1,145 @@
 sudo: false
 language: cpp
 
+addons:
+  apt:
+    packages:
+      - g++-6
+      - g++-5
+    sources: &sources
+      - ubuntu-toolchain-r-test
+
+
+cache:
+  directories:
+    - ${TRAVIS_BUILD_DIR}/deps/llvm-3.6.2
+    - ${TRAVIS_BUILD_DIR}/deps/llvm-3.7.1
+    - ${TRAVIS_BUILD_DIR}/deps/llvm-3.8.0
+
+
 # More complete test matrix
 matrix:
   include:
+    # Clang 3.6
     - os: linux
-      compiler: gcc
-      addons:
-        apt:
-          sources: ['ubuntu-toolchain-r-test']
-          packages: ['g++-4.9']
-      env: TOOLSET=g++-4.9
-
-    - os: linux
-      compiler: gcc
-      addons:
-        apt:
-          sources: ['ubuntu-toolchain-r-test']
-          packages: ['g++-5']
-      env: TOOLSET=g++-5
-
-    - os: linux
+      env: LLVM_VERSION=3.6.2
       compiler: clang
-      addons:
-        apt:
-          sources: ['ubuntu-toolchain-r-test', 'llvm-toolchain-precise-3.6']
-          packages: ['clang-3.6']
-      env: TOOLSET=clang++-3.6
 
-    #- os: osx
-      #compiler: clang
-      #env: TOOLSET=clang++-3.6
+    # Clang 3.7
+    - os: linux
+      env: LLVM_VERSION=3.7.1
+      compiler: clang
 
-# Prepare build
+    # Clang 3.8
+    - os: linux
+      env: LLVM_VERSION=3.8.0
+      compiler: clang
+
+    # GCC 5
+    - os: linux
+      env: COMPILER=g++-5
+      compiler: gcc
+
+    # GCC 6
+    - os: linux
+      env: COMPILER=g++-6
+      compiler: gcc
+
+    # Xcode 6.4
+    - os: osx
+      env:
+      osx_image: xcode6.4
+
+    # Xcode 7.3
+    - os: osx
+      env:
+      osx_image: xcode7.3
+
+    # Xcode 8
+    - os: osx
+      env:
+      osx_image: xcode8
+
+    ##########################################################################
+    # C++17
+    ##########################################################################
+
+    # Clang 3.6
+    - os: linux
+      env: LLVM_VERSION=3.6.2   CMAKE_OPTIONS="-DFALCON_FOLD_ENABLE_CXX17=ON"
+      compiler: clang
+
+    # Clang 3.7
+    - os: linux
+      env: LLVM_VERSION=3.7.1   CMAKE_OPTIONS="-DFALCON_FOLD_ENABLE_CXX17=ON"
+      compiler: clang
+
+    # Clang 3.8
+    - os: linux
+      env: LLVM_VERSION=3.8.0   CMAKE_OPTIONS="-DFALCON_FOLD_ENABLE_CXX17=ON"
+      compiler: clang
+
+    # GCC 6
+    - os: linux
+      env: COMPILER=g++-6       CMAKE_OPTIONS="-DFALCON_FOLD_ENABLE_CXX17=ON"
+      compiler: gcc
+
+    # Xcode 6.4
+    - os: osx
+      env:
+      osx_image: xcode6.4       CMAKE_OPTIONS="-DFALCON_FOLD_ENABLE_CXX17=ON"
+
+    # Xcode 7.3
+    - os: osx
+      env:
+      osx_image: xcode7.3       CMAKE_OPTIONS="-DFALCON_FOLD_ENABLE_CXX17=ON"
+
+    # Xcode 8
+    - os: osx
+      env:
+      osx_image: xcode8         CMAKE_OPTIONS="-DFALCON_FOLD_ENABLE_CXX17=ON"
+
+
+install:
+  ############################################################################
+  # All the dependencies are installed in ${TRAVIS_BUILD_DIR}/deps/
+  ############################################################################
+  - DEPS_DIR="${TRAVIS_BUILD_DIR}/deps"
+  - mkdir -p ${DEPS_DIR} && cd ${DEPS_DIR}
+
+  - if [[ "${COMPILER}" != "" ]]; then export CXX=${COMPILER}; fi
+
+  ############################################################################
+  # Install Clang, libc++ and libc++abi
+  ############################################################################
+  - |
+    if [[ "${LLVM_VERSION}" != "" ]]; then
+      LLVM_DIR=${DEPS_DIR}/llvm-${LLVM_VERSION}
+      if [[ -z "$(ls -A ${LLVM_DIR})" ]]; then
+        LLVM_URL="http://llvm.org/releases/${LLVM_VERSION}/llvm-${LLVM_VERSION}.src.tar.xz"
+        LIBCXX_URL="http://llvm.org/releases/${LLVM_VERSION}/libcxx-${LLVM_VERSION}.src.tar.xz"
+        LIBCXXABI_URL="http://llvm.org/releases/${LLVM_VERSION}/libcxxabi-${LLVM_VERSION}.src.tar.xz"
+        CLANG_URL="http://llvm.org/releases/${LLVM_VERSION}/clang+llvm-${LLVM_VERSION}-x86_64-linux-gnu-ubuntu-14.04.tar.xz"
+        mkdir -p ${LLVM_DIR} ${LLVM_DIR}/build ${LLVM_DIR}/projects/libcxx ${LLVM_DIR}/projects/libcxxabi ${LLVM_DIR}/clang
+        travis_retry wget --quiet -O - ${LLVM_URL}      | tar --strip-components=1 -xJ -C ${LLVM_DIR}
+        travis_retry wget --quiet -O - ${LIBCXX_URL}    | tar --strip-components=1 -xJ -C ${LLVM_DIR}/projects/libcxx
+        travis_retry wget --quiet -O - ${LIBCXXABI_URL} | tar --strip-components=1 -xJ -C ${LLVM_DIR}/projects/libcxxabi
+        travis_retry wget --quiet -O - ${CLANG_URL}     | tar --strip-components=1 -xJ -C ${LLVM_DIR}/clang
+        (cd ${LLVM_DIR}/build && cmake .. -DCMAKE_INSTALL_PREFIX=${LLVM_DIR}/install -DCMAKE_CXX_COMPILER=clang++)
+        (cd ${LLVM_DIR}/build/projects/libcxx && make install -j2)
+        (cd ${LLVM_DIR}/build/projects/libcxxabi && make install -j2)
+      fi
+      export CXXFLAGS="-nostdinc++ -isystem ${LLVM_DIR}/install/include/c++/v1"
+      export LDFLAGS="-L ${LLVM_DIR}/install/lib -l c++ -l c++abi"
+      export LD_LIBRARY_PATH="${LD_LIBRARY_PATH}:${LLVM_DIR}/install/lib"
+      export PATH="${LLVM_DIR}/clang/bin:${PATH}"
+    fi
+
+
 before_script:
-  - mkdir build
-  - cd build
-  - cmake .. -DCMAKE_CXX_COMPILER=$TOOLSET
+  - cd ${TRAVIS_BUILD_DIR}
+  - (mkdir build && cd build && cmake .. ${CMAKE_OPTIONS})
+
 
 script:
-  - make VERBOSE=1
-  - make test
+  - (cd build && make VERBOSE=1 && ctest -V)
