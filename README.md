@@ -1,8 +1,5 @@
-g++-4.9, g++-5, clang-3.6: [![Travis Build Status](https://travis-ci.org/jonathanpoelen/falcon.fold.svg?branch=master)](https://travis-ci.org/jonathanpoelen/falcon.fold)
+# Falcon.fold [![Version](version.badge)](http://semver.org) [![Travis Build Status](travis.badge)](travis.url) [![Appveyor Build Status](appveyor.badge)](appveyor.url)
 
-VS 2015: [![Appveyor Build Status](https://ci.appveyor.com/api/projects/status/github/jonathanpoelen/falcon.fold)](https://ci.appveyor.com/project/jonathanpoelen/falcon-fold)
-
-# Falcon.fold
 
 Fold functions on parameter list.
 
@@ -95,3 +92,13 @@ foldp(folder, f, 1, 2, 3, 4, 5, 6, 7, 8)
 // Equivalent to
 f(0, f(folder(1, 2), f(folder(3, 4, 5, 6), folder(7, 8))))
 ```
+
+<!-- links -->
+
+[version.badge]: https://badge.fury.io/gh/jonathanpoelen%2Ffalcon.fold.svg
+
+[travis.url]: https://travis-ci.org/jonathanpoelen/falcon.fold
+[travis.badge]: https://travis-ci.org/jonathanpoelen/falcon.fold.svg?branch=master
+
+[appveyor.url]: https://ci.appveyor.com/project/jonathanpoelen/falcon-fold
+[appveyor.badge]: https://ci.appveyor.com/api/projects/status/github/jonathanpoelen/falcon.fold
