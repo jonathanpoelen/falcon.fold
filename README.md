@@ -1,4 +1,4 @@
-# Falcon.fold [![Version](version.badge)](http://semver.org) [![Travis Build Status](travis.badge)](travis.url) [![Appveyor Build Status](appveyor.badge)](appveyor.url)
+# Falcon.fold [![version.badge]](http://semver.org) [![travis.badge]][travis.url] [![appveyor.badge]][appveyor.url]
 
 
 Fold functions on parameter list.
