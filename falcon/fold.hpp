@@ -695,7 +695,7 @@ namespace detail { namespace { namespace fold {
   {
     return pow == 32
       ? count
-      : count_foldt_element3(count | (count >> pow), pow * 2);
+      : count_foldt_element2(count | (count >> pow), pow * 2);
   }
 
   constexpr size_t
