@@ -689,6 +689,23 @@ namespace fold {
 
 
 namespace detail { namespace { namespace fold {
+#ifdef _MSC_VER
+  constexpr size_t
+  count_foldt_element2(size_t count, size_t pow = 1)
+  {
+    return pow == 32
+      ? count
+      : count_foldt_element3(count | (count >> pow), pow * 2);
+  }
+
+  constexpr size_t
+  count_foldt_element(size_t count)
+  {
+    return (count <= 2)
+      ? count
+      : (count_foldt_element2(count - 1) + 1) / 2;
+  }
+#else
   constexpr size_t
   count_foldt_element(size_t count)
   {
@@ -705,6 +722,7 @@ namespace detail { namespace { namespace fold {
         count / 2
       );
   }
+#endif
 
   template<class Elems>
   struct foldt_impl;
