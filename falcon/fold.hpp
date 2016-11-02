@@ -689,7 +689,7 @@ namespace fold {
 
 
 namespace detail { namespace { namespace fold {
-#ifdef _MSC_VER
+#if defined(_MSC_VER) or defined(__clang__)
   constexpr size_t
   count_foldt_element2(size_t count, size_t pow = 1)
   {
