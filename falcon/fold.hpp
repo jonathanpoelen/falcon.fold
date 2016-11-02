@@ -692,11 +692,18 @@ namespace detail { namespace { namespace fold {
   constexpr size_t
   count_foldt_element(size_t count)
   {
-    size_t n = 2;
-    while (n * 2 < count) {
-      n *= 2;
-    }
-    return std::min(n, count);
+    return (count <= 2)
+      ? count
+      : (
+        count -= 1,
+        count |= (count >> 1),
+        count |= (count >> 2),
+        count |= (count >> 4),
+        count |= (count >> 8),
+        count |= (count >> 16),
+        count += 1,
+        count / 2
+      );
   }
 
   template<class Elems>
