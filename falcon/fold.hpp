@@ -36,6 +36,7 @@ SOFTWARE.
 #define FALCON_FOLD_HPP
 
 #include <utility>
+#include <algorithm> // std:min, std::max
 #include <type_traits>
 
 #include <brigand/brigand.hpp>
