@@ -6,8 +6,9 @@ Fold functions on parameter list.
 Header only (c++14).
 
 
-# Submodules (`git submodule update --init --recursive`)
+# Submodules
 
+`git submodule update --init --recursive`
 - https://github.com/jonathanpoelen/falcon.cxx
 
 
