@@ -6,6 +6,11 @@ Fold functions on parameter list.
 Header only (c++14).
 
 
+# Submodules (`git submodule update --init --recursive`)
+
+- https://github.com/jonathanpoelen/falcon.cxx
+
+
 # Documentation
 
 All functions are in namespaces `falcon` and `falcon::fold` in the form `decltype(auto) fold(fn &&, Ts && ...)`.
@@ -92,6 +97,20 @@ foldp(folder, f, 1, 2, 3, 4, 5, 6, 7, 8)
 // Equivalent to
 f(0, f(folder(1, 2), f(folder(3, 4, 5, 6), folder(7, 8))))
 ```
+
+
+# Compilation
+
+- `mkdir build`
+- `cd build`
+- `cmake ..` or `cmake -DFALCON_FOLD_ENABLE_CXX17=1 ..` to force c++1z and fold expressions.
+- `make test`
+
+
+# Activate C++17 fold expressions on these projects
+
+Set `FALCON_CXX_HAS_FEATURE_FOLD_EXPRESSIONS` macro to `1` or use a compiler with [__cpp_fold_expressions](http://en.cppreference.com/w/User:D41D8CD98F/feature_testing_macros#C.2B.2B17) support.
+
 
 <!-- links -->
 

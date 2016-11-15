@@ -48,6 +48,7 @@ build:
 # scripts to run before build
 before_build:
   - cd c:\sources\falcon.fold
+  - git submodule update --init --recursive
   - md build
   - cd build
   - cmake -G"Visual Studio 14 2015 Win64" ..
