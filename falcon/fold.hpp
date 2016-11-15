@@ -41,6 +41,8 @@ SOFTWARE.
 
 #include <brigand/brigand.hpp>
 
+#include <falcon/cxx/cxx.hpp>
+
 
 namespace falcon {
 namespace fold {
@@ -265,15 +267,7 @@ namespace detail { namespace { namespace fold {
 } } }
 
 
-//#if defined(__cpp_fold_expressions) && __cpp_fold_expressions >= 201411
-#if __cplusplus > 201402L
-# define FALCON_HAS_FOLD_EXPRESSION 1
-#else
-# define FALCON_HAS_FOLD_EXPRESSION 0
-#endif
-
-
-#if FALCON_HAS_FOLD_EXPRESSION
+#if FALCON_CXX_HAS_FEATURE_FOLD_EXPRESSIONS
 namespace detail { namespace { namespace fold {
   template<class F, class T = void>
   struct FoldFn
@@ -550,7 +544,7 @@ namespace detail { namespace { namespace fold {
 
   template<class T>
   struct foldbr_impl<brigand::list<T>>
-#if FALCON_HAS_FOLD_EXPRESSION
+#if FALCON_CXX_HAS_FEATURE_FOLD_EXPRESSIONS
   {
     template<class Fn, class U>
     static constexpr decltype(auto)
